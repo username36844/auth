@@ -762,3 +762,38 @@ Return 401/403
 ```
 
 This gives you stateful sessions, instant revocation, logout-all-devices, role synchronization, account suspension, and near-zero database load on authenticated requests.
+
+
+
+One thing I would add
+
+Instead of:
+
+Redis only
+
+I'd store session metadata in PostgreSQL too:
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+
+  sessionHash  String   @unique
+
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  revokedAt    DateTime?
+
+  user         User @relation(fields: [userId], references: [id])
+}
+
+Then:
+
+Redis
+→ Fast auth path
+
+PostgreSQL
+→ Audit trail
+→ Device management
+→ Session history
+→ Security investigations
